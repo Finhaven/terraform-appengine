@@ -1,3 +1,8 @@
+variable "project_id" {
+  description = "(Required) The project ID to create the application under."
+  type        = string
+}
+
 variable "service_version" {
   description = "(Optional) Name of the App Engine version of the Service that will be deployed."
   type        = string
@@ -21,26 +26,14 @@ variable "service" {
 }
 
 variable "runtime" {
-  description = "(Required; Default: python27) The runtime that will be used by App Engine. Supported runtimes are: python27, python37, python38, java8, java11, php55, php73, php74, ruby25, go111, go112, go113, go114, nodejs10, nodejs12."
+  description = "(Required) The runtime that will be used by App Engine."
   type        = string
-  default     = "python27"
-
-  validation {
-    condition     = contains(["python27", "python37", "python38", "java8", "java11", "php55", "php73", "php74", "ruby25", "go111", "go112", "go113", "go114", "nodejs10", "nodejs12"], var.runtime)
-    error_message = "The specified runtime does not match any of the supported runtimes: \n - Python: python27, python37, python38 \n - Java: java8, java11 \n - PHP: php55, php73, php74 \n - Ruby: ruby25 \n - Go: go111, go112, go113, go114 \n - Node.js: nodejs10, nodejs12."
-  }
 }
 
 variable "threadsafe" {
   description = "(Optional; Default True) Whether the application should use concurrent requests or not. Only appliable for python27 and java8 runtimes."
   type        = bool
   default     = true
-}
-
-variable "api_version" {
-  description = "(Optional)The version of the API in the given runtime environment that is used by your app. The field is deprecated for newer App Engine runtimes."
-  type        = number
-  default     = null
 }
 
 variable "env_variables" {
@@ -62,14 +55,9 @@ variable "delete_service_on_destroy" {
 }
 
 variable "instance_class" {
-  description = "(Optional; Default: F1) Instance class that is used to run this version. Valid values are AutomaticScaling: F1, F2, F4, F4_1G BasicScaling or ManualScaling: B1, B2, B4, B4_1G, B8 Defaults to F1 for AutomaticScaling and B2 for ManualScaling and BasicScaling. If no scaling is specified, AutomaticScaling is chosen."
+  description = "(Optional; Default: F1) Instance class that is used to run this version."
   type        = string
   default     = "F1"
-
-  validation {
-    condition     = contains(["B1", "B2", "B4", "B4_1G", "B8", "F1", "F2", "F4", "F4_1G"], var.instance_class)
-    error_message = "Instance class must be one of [B1, B2, B4, B4_1G, B8] for BasicScaling or ManualScaling and one of [F1, F2, F4, F4_1G] for AutomaticScaling."
-  }
 }
 
 variable "inbound_services" {
@@ -87,7 +75,7 @@ variable "zip" {
   description = "(Optional) Zip File Structure."
   type = object({
     source_url  = string,
-    files_count = number
+    files_count = optional(number)
   })
   default = null
 }
@@ -125,19 +113,19 @@ variable "handlers" {
   }))
 
   validation {
-    condition     = var.handlers != null ? ! contains([for security_level in var.handlers[*].security_level : (security_level == null || contains(["SECURE_DEFAULT", "SECURE_NEVER", "SECURE_OPTIONAL", "SECURE_ALWAYS"], security_level)) if security_level != null], false) : true
+    condition     = var.handlers != null ? !contains([for security_level in var.handlers[*].security_level : (security_level == null || contains(["SECURE_DEFAULT", "SECURE_NEVER", "SECURE_OPTIONAL", "SECURE_ALWAYS"], security_level)) if security_level != null], false) : true
     error_message = "Security level field value must be one of [SECURE_DEFAULT, SECURE_NEVER, SECURE_OPTIONAL, SECURE_ALWAYS]."
   }
   validation {
-    condition     = var.handlers != null ? ! contains([for login in var.handlers[*].login : (login == null || contains(["LOGIN_OPTIONAL", "LOGIN_ADMIN", "LOGIN_REQUIRED"], login)) if login != null], false) : true
+    condition     = var.handlers != null ? !contains([for login in var.handlers[*].login : (login == null || contains(["LOGIN_OPTIONAL", "LOGIN_ADMIN", "LOGIN_REQUIRED"], login)) if login != null], false) : true
     error_message = "Login field value must be one of [LOGIN_OPTIONAL, LOGIN_ADMIN, LOGIN_REQUIRED]."
   }
   validation {
-    condition     = var.handlers != null ? ! contains([for auth_fail_action in var.handlers[*].auth_fail_action : (auth_fail_action == null || contains(["AUTH_FAIL_ACTION_REDIRECT", "AUTH_FAIL_ACTION_UNAUTHORIZED"], auth_fail_action)) if auth_fail_action != null], false) : true
+    condition     = var.handlers != null ? !contains([for auth_fail_action in var.handlers[*].auth_fail_action : (auth_fail_action == null || contains(["AUTH_FAIL_ACTION_REDIRECT", "AUTH_FAIL_ACTION_UNAUTHORIZED"], auth_fail_action)) if auth_fail_action != null], false) : true
     error_message = "Auth fail action field value must be one of [AUTH_FAIL_ACTION_REDIRECT,AUTH_FAIL_ACTION_UNAUTHORIZED]."
   }
   validation {
-    condition     = var.handlers != null ? ! contains([for redirect_http_response_code in var.handlers[*].redirect_http_response_code : (redirect_http_response_code == null || contains(["REDIRECT_HTTP_RESPONSE_CODE_301", "REDIRECT_HTTP_RESPONSE_CODE_302", "REDIRECT_HTTP_RESPONSE_CODE_303", "REDIRECT_HTTP_RESPONSE_CODE_307"], redirect_http_response_code)) if redirect_http_response_code != null], false) : true
+    condition     = var.handlers != null ? !contains([for redirect_http_response_code in var.handlers[*].redirect_http_response_code : (redirect_http_response_code == null || contains(["REDIRECT_HTTP_RESPONSE_CODE_301", "REDIRECT_HTTP_RESPONSE_CODE_302", "REDIRECT_HTTP_RESPONSE_CODE_303", "REDIRECT_HTTP_RESPONSE_CODE_307"], redirect_http_response_code)) if redirect_http_response_code != null], false) : true
     error_message = "Redirect HTTP response code field value must be one of [REDIRECT_HTTP_RESPONSE_CODE_301, REDIRECT_HTTP_RESPONSE_CODE_302, REDIRECT_HTTP_RESPONSE_CODE_303, REDIRECT_HTTP_RESPONSE_CODE_307]."
   }
   default = null
@@ -175,46 +163,34 @@ variable "automatic_scaling" {
       max_instances                 = number
     })
   })
-  default = {
-    max_concurrent_requests = 10,
-    max_idle_instances      = 10,
-    max_pending_latency     = "30ms",
-    min_idle_instances      = 3,
-    min_pending_latency     = "0s",
-    standard_scheduler_settings = {
-      target_cpu_utilization        = 0.6,
-      target_throughput_utilization = 0.6,
-      min_instances                 = 0,
-      max_instances                 = 1
-    }
-  }
+  default = null
 
   validation {
-    condition     = ! contains([for max_concurrent_requests in var.automatic_scaling[*].max_concurrent_requests : (max_concurrent_requests >= 10 && max_concurrent_requests <= 80)], false)
+    condition     = !contains([for max_concurrent_requests in var.automatic_scaling[*].max_concurrent_requests : (max_concurrent_requests >= 10 && max_concurrent_requests <= 80)], false)
     error_message = "The value of max_concurrent_requests must fall within range [10, 80]."
   }
   validation {
-    condition     = ! contains([for max_idle_instances in var.automatic_scaling[*].max_idle_instances : (max_idle_instances >= 1 && max_idle_instances <= 1000)], false)
+    condition     = !contains([for max_idle_instances in var.automatic_scaling[*].max_idle_instances : (max_idle_instances >= 1 && max_idle_instances <= 1000)], false)
     error_message = "The value of max_idle_instances needs to fall within range [1, 1000]."
   }
   validation {
-    condition     = ! contains([for min_idle_instances in var.automatic_scaling[*].min_idle_instances : (min_idle_instances >= 1 && min_idle_instances <= 1000)], false)
+    condition     = !contains([for min_idle_instances in var.automatic_scaling[*].min_idle_instances : (min_idle_instances >= 1 && min_idle_instances <= 1000)], false)
     error_message = "The value of min_idle_instances needs to be fall within range [1, 1000]."
   }
   validation {
-    condition     = ! contains([for standard_scheduler_settings in var.automatic_scaling[*].standard_scheduler_settings : contains([for target_cpu_utilization in standard_scheduler_settings[*].target_cpu_utilization : (target_cpu_utilization >= 0.5 && target_cpu_utilization <= 0.95)], false)], true)
+    condition     = !contains([for standard_scheduler_settings in var.automatic_scaling[*].standard_scheduler_settings : contains([for target_cpu_utilization in standard_scheduler_settings[*].target_cpu_utilization : (target_cpu_utilization >= 0.5 && target_cpu_utilization <= 0.95)], false)], true)
     error_message = "The target_cpu_utilization value must fall within range [0.5, 0.95]."
   }
   validation {
-    condition     = ! contains([for standard_scheduler_settings in var.automatic_scaling[*].standard_scheduler_settings : contains([for target_throughput_utilization in standard_scheduler_settings[*].target_throughput_utilization : (target_throughput_utilization >= 0.5 && target_throughput_utilization <= 0.95)], false)], true)
+    condition     = !contains([for standard_scheduler_settings in var.automatic_scaling[*].standard_scheduler_settings : contains([for target_throughput_utilization in standard_scheduler_settings[*].target_throughput_utilization : (target_throughput_utilization >= 0.5 && target_throughput_utilization <= 0.95)], false)], true)
     error_message = "The target_throughput_utilization value must fall within range [0.5, 0.95]."
   }
   validation {
-    condition     = ! contains([for standard_scheduler_settings in var.automatic_scaling[*].standard_scheduler_settings : contains([for min_instances in standard_scheduler_settings[*].target_throughput_utilization : (min_instances >= 0 && min_instances <= 1000)], false)], true)
+    condition     = !contains([for standard_scheduler_settings in var.automatic_scaling[*].standard_scheduler_settings : contains([for min_instances in standard_scheduler_settings[*].target_throughput_utilization : (min_instances >= 0 && min_instances <= 1000)], false)], true)
     error_message = "The min_instances value must fall within range [0,1000]."
   }
   validation {
-    condition     = ! contains([for standard_scheduler_settings in var.automatic_scaling[*].standard_scheduler_settings : contains([for max_instances in standard_scheduler_settings[*].target_throughput_utilization : (max_instances >= 0 && max_instances <= 1000)], false)], true)
+    condition     = !contains([for standard_scheduler_settings in var.automatic_scaling[*].standard_scheduler_settings : contains([for max_instances in standard_scheduler_settings[*].target_throughput_utilization : (max_instances >= 0 && max_instances <= 1000)], false)], true)
     error_message = "The max_instances value must fall within range [0,2147483647]."
   }
 }

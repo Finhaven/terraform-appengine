@@ -1,22 +1,12 @@
-# ======================== DATA SOURCE DEFINITION ================= #
-
-# It collects the different regions available within GCP.
-
-data "google_compute_regions" "available" {
-  # project = var.project_id
-}
-
 # ========================= VARIABLE DEFINITION =================== #
-variable "project" {
-  description = "(Required) The project ID to create the application under. ~>NOTE: GCP only accepts project ID, not project number. If you are using number, you may get a `Permission denied` error."
+variable "project_id" {
+  description = "(Required) The project ID to create the application under."
   type        = string
-  default     = ""
 }
 
 variable "location_id" {
   description = "(Required) The location to serve the app from."
   type        = string
-  default     = ""
 }
 
 variable "auth_domain" {

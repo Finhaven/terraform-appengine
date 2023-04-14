@@ -76,8 +76,6 @@ variable "zip" {
   type = object({
     source_url  = string,
     files_count = optional(number)
-    # This can be used to force deployment of an updated zip file. Pass the md5 hash.
-    keeper = optional(string)
   })
   default = null
 }

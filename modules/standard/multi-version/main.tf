@@ -19,6 +19,7 @@ module "versions" {
 
   # Common version args.
   project_id                = try(local.common_args.project_id, null)
+  service_account           = try(local.common_args.service_account, null)
   service                   = try(local.common_args.service, null)
   runtime                   = try(local.common_args.runtime, null)
   threadsafe                = try(local.common_args.threadsafe, null)

@@ -10,7 +10,7 @@ variable "project_id" {
 
 variable "ssl_settings" {
   type = object({
-    certificate_id      = string,
+    certificate_id      = optional(string),
     ssl_management_type = string,
   })
   default = null

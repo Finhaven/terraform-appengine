@@ -1,6 +1,6 @@
 resource "google_app_engine_service_split_traffic" "split_traffic" {
   project         = var.project_id
-  service         = var.service
+  service         = var.service_name
   migrate_traffic = var.migrate_traffic
 
   split {

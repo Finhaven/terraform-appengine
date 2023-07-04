@@ -2,7 +2,7 @@ variable "project_id" {
   description = "ID of project in which to create the split traffic."
 }
 
-variable "service" {
+variable "service_name" {
   description = "(Required) The name of the service these settings apply to."
   type        = string
   default     = ""

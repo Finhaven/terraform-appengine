@@ -3,10 +3,12 @@
 # Version: 0.1.0
 
 locals {
-  # Passing untyped objects results in JSON strings in the variables. Using
-  # jsondecode to rehydrate the objects.
-  versions    = jsondecode(var.versions)
-  common_args = jsondecode(var.common_args)
+  # Passing untyped objects using Terragrunt results in JSON strings in the
+  # variables. Using jsondecode to rehydrate the objects. Try function ensures
+  # that we can use this module in Terragrunt and in other Terraform modules.
+  # Terraform handles untyped variables correctly.
+  versions    = try(jsondecode(var.versions), var.versions)
+  common_args = try(jsondecode(var.common_args), var.common_args)
 }
 
 module "versions" {

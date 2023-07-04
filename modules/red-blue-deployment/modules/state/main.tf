@@ -17,6 +17,10 @@ variable "component_path" {
 # Data Sources ################################################################
 
 locals {
+  # Hash to use when first initializing the deployment. May be any string. The
+  # value specified will be appended with `.zip` and the build script will look
+  # for that zip file in the bucket at the `component_path`.
+  initial_hash = "initial"
   version_ids = [
     "blue",
     "red",
@@ -38,14 +42,23 @@ data "google_storage_bucket_object_content" "current" {
 # Locals ######################################################################
 
 locals {
-  # Create a map of version_ids to hashes, skipping over any empty hashes.
+  # Create a map of version_ids to hashes. If the hash is null set it to the
+  # initial hash value.
   hashes = {
     for id, obj in data.google_storage_bucket_object_content.hashes :
-    id => obj.content
+    # Trimspace is required since the data source appears to be appending
+    # newlines to the file content.
+    id => trimspace(coalesce(obj.content, local.initial_hash))
   }
 
-  # The version that has been marked as current.
-  current = data.google_storage_bucket_object_content.current.content
+  # The version that has been marked as current. If this deployment has not been
+  # initialized set the current version to the first version ID. Trimspace is
+  # required since the data source appears to be appending newlines to the file
+  # content.
+  current = trimspace(coalesce(
+    data.google_storage_bucket_object_content.current.content,
+    local.version_ids[0]
+  ))
 
   # Build url base to use in zip.source_urls in the GAE service version module.
   url_base = join("/", [

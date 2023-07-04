@@ -13,23 +13,13 @@ do
     # gsutil stat command returns status 1 if the file is not found. 0 if the
     # file is found.
     if [[ $STATUS == 1 ]]; then
-        # Create file with "initial" as the value. The TF code will upload a
-        # file to this directory named "initial.zip" which will be used for the
-        # first version of the GAE service. Using `-n` to prevent echo from
-        # adding a newline char at the end of the file.
-        echo -n initial > $FILENAME
+        # Create an empty local file to upload.
+        touch $FILENAME
 
-        # Set the initial current GAE version to blue.
-        if [ "$FILENAME" == "current" ]; then
-            # Using `-n` to prevent echo from adding a newline char at the end
-            # of the file.
-            echo -n blue > $FILENAME
-        fi
-
-        # Copy the files to the archive bucket.
+        # Copy the file to the archive bucket.
         gsutil cp $FILENAME $FILE_URL
 
-        # Remove the local file
+        # Remove the local file.
         rm $FILENAME
     fi
 done

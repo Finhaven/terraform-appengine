@@ -16,7 +16,8 @@ variable "service_version" {
 
 variable "service_account" {
   description = "(Optional) The identity that the deployed version will run as. Admin API will use the App Engine Appspot service account as default if this field is neither provided in app.yaml file nor through CLI flag."
-  type = string
+  type        = string
+  default     = null
 }
 
 variable "service" {

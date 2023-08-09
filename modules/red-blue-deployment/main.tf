@@ -131,7 +131,3 @@ output "split_traffic" {
 output "versions" {
   value = local.versions
 }
-
-output "debug" {
-  value = local.state
-}

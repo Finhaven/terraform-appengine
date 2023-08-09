@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Initialize state files if they don't exist.
 for FILENAME in red blue current
@@ -10,11 +10,11 @@ do
 
     # gsutil stat command returns status 1 if the file is not found. 0 if the
     # file is found.
-    if [ $STATUS == 1 ]; then
+    if [ $STATUS -eq 1 ]; then
         # Create an empty local file to upload.
         echo -n "initial" > $FILENAME
 
-        if [ $FILENAME == "current" ]; then
+        if [ $FILENAME = "current" ]; then
             echo -n "blue" > $FILENAME
         fi
 

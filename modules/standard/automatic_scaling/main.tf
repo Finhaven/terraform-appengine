@@ -35,16 +35,27 @@ resource "google_app_engine_standard_app_version" "appengine_standard" {
     }
   }
 
-  # handlers:
-  # - url: /.*
-  # script: auto
-  # secure: always
-  # redirect_http_response_code: 301
-
+  #TODO: The handers were manually added during debugging SAAS Deployments. Once
+  #that's all done, see about restoring the handlers dynamic block below when
+  #I'm able to test with a separate dev-ops env.
   handlers {
     url_regex                   = "/.*"
     security_level              = "SECURE_ALWAYS"
     redirect_http_response_code = "REDIRECT_HTTP_RESPONSE_CODE_301"
+    auth_fail_action            = "AUTH_FAIL_ACTION_REDIRECT"
+    login                       = "LOGIN_OPTIONAL"
+
+    script {
+      script_path = "auto"
+    }
+  }
+
+  handlers {
+    auth_fail_action = "AUTH_FAIL_ACTION_REDIRECT"
+    login            = "LOGIN_OPTIONAL"
+    security_level   = "SECURE_OPTIONAL"
+    url_regex        = ".*"
+
     script {
       script_path = "auto"
     }

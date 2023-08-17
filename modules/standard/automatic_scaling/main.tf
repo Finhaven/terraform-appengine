@@ -45,6 +45,9 @@ resource "google_app_engine_standard_app_version" "appengine_standard" {
     url_regex                   = "/.*"
     security_level              = "SECURE_ALWAYS"
     redirect_http_response_code = "REDIRECT_HTTP_RESPONSE_CODE_301"
+    script {
+      script_path = "auto"
+    }
   }
 
   # dynamic "handlers" {

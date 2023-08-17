@@ -43,7 +43,6 @@ resource "google_app_engine_standard_app_version" "appengine_standard" {
 
   handlers {
     url_regex                   = "/.*"
-    script                      = "auto"
     security_level              = "SECURE_ALWAYS"
     redirect_http_response_code = "REDIRECT_HTTP_RESPONSE_CODE_301"
   }

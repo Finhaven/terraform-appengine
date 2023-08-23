@@ -35,65 +35,67 @@ resource "google_app_engine_standard_app_version" "appengine_standard" {
     }
   }
 
-  #TODO: The handers were manually added during debugging SAAS Deployments. Once
-  #that's all done, see about restoring the handlers dynamic block below when
-  #I'm able to test with a separate dev-ops env.
-  handlers {
-    url_regex                   = "/.*"
-    security_level              = "SECURE_ALWAYS"
-    redirect_http_response_code = "REDIRECT_HTTP_RESPONSE_CODE_301"
-    auth_fail_action            = "AUTH_FAIL_ACTION_REDIRECT"
-    login                       = "LOGIN_OPTIONAL"
+  # #TODO: The handers were manually added during debugging SAAS Deployments.
+  # #Once that's all done, see about restoring the handlers dynamic block below
+  # #when I'm able to test with a separate dev-ops env. This was possibly
+  # #causing issues with 500 errors in the non-default services.
 
-    script {
-      script_path = "auto"
-    }
-  }
+  # handlers {
+  #   url_regex                   = "/.*"
+  #   security_level              = "SECURE_ALWAYS"
+  #   redirect_http_response_code = "REDIRECT_HTTP_RESPONSE_CODE_301"
+  #   auth_fail_action            = "AUTH_FAIL_ACTION_REDIRECT"
+  #   login                       = "LOGIN_OPTIONAL"
 
-  handlers {
-    auth_fail_action = "AUTH_FAIL_ACTION_REDIRECT"
-    login            = "LOGIN_OPTIONAL"
-    security_level   = "SECURE_OPTIONAL"
-    url_regex        = ".*"
-
-    script {
-      script_path = "auto"
-    }
-  }
-
-  # dynamic "handlers" {
-  #   for_each = var.handlers == null ? [] : var.handlers
-
-  #   content {
-  #     url_regex                   = var.handlers[handlers.key]["url_regex"]
-  #     security_level              = var.handlers[handlers.key]["security_level"]
-  #     login                       = var.handlers[handlers.key]["login"]
-  #     auth_fail_action            = var.handlers[handlers.key]["auth_fail_action"]
-  #     redirect_http_response_code = var.handlers[handlers.key]["redirect_http_response_code"]
-
-  #     dynamic "script" {
-  #       for_each = handlers.value.script[*]
-
-  #       content {
-  #         script_path = script.value.script_path
-  #       }
-  #     }
-
-  #     dynamic "static_files" {
-  #       for_each = handlers.value.static_files[*]
-
-  #       content {
-  #         path                  = static_files.value.path
-  #         upload_path_regex     = static_files.value.upload_path_regex
-  #         http_headers          = static_files.value.http_headers
-  #         mime_type             = static_files.value.mime_type
-  #         expiration            = static_files.value.expiration
-  #         require_matching_file = static_files.value.require_matching_file
-  #         application_readable  = static_files.value.application_readable
-  #       }
-  #     }
+  #   script {
+  #     script_path = "auto"
   #   }
   # }
+
+  # handlers {
+  #   auth_fail_action = "AUTH_FAIL_ACTION_REDIRECT"
+  #   login            = "LOGIN_OPTIONAL"
+  #   security_level   = "SECURE_OPTIONAL"
+  #   url_regex        = ".*"
+
+  #   script {
+  #     script_path = "auto"
+  #   }
+  # }
+
+  dynamic "handlers" {
+    for_each = var.handlers == null ? [] : var.handlers
+
+    content {
+      url_regex                   = var.handlers[handlers.key]["url_regex"]
+      security_level              = var.handlers[handlers.key]["security_level"]
+      login                       = var.handlers[handlers.key]["login"]
+      auth_fail_action            = var.handlers[handlers.key]["auth_fail_action"]
+      redirect_http_response_code = var.handlers[handlers.key]["redirect_http_response_code"]
+
+      dynamic "script" {
+        for_each = handlers.value.script[*]
+
+        content {
+          script_path = script.value.script_path
+        }
+      }
+
+      dynamic "static_files" {
+        for_each = handlers.value.static_files[*]
+
+        content {
+          path                  = static_files.value.path
+          upload_path_regex     = static_files.value.upload_path_regex
+          http_headers          = static_files.value.http_headers
+          mime_type             = static_files.value.mime_type
+          expiration            = static_files.value.expiration
+          require_matching_file = static_files.value.require_matching_file
+          application_readable  = static_files.value.application_readable
+        }
+      }
+    }
+  }
 
   dynamic "libraries" {
     for_each = var.libraries == null ? [] : var.libraries

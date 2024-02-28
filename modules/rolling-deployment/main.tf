@@ -120,5 +120,5 @@ output "split_traffic" {
 }
 
 output "versions" {
-  value = local.version_hashes
+  value = local.versions
 }

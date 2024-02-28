@@ -1,51 +1,63 @@
 # ===== Required Variables ===== #
+
+variable "project_id" {
+  description = "(Required) The project ID to create the application under."
+  type        = string
+}
+
 variable "runtime" {
   description = "(Required; Default: python) The runtime that will be used by App Engine. Supported runtimes are: python27, python37, python38, java8, java11, php55, php73, php74, ruby25, go111, go112, go113, go114, nodejs10, nodejs12."
   type        = string
   default     = "python"
-
 }
+
+variable "service_account" {
+  description = "(Optional) The identity that the deployed version will run as. Admin API will use the App Engine Appspot service account as default if this field is neither provided in app.yaml file nor through CLI flag."
+  type        = string
+  default     = null
+}
+
 # ===== Readiness Check Variables ===== #
 variable "readiness_path" {
   description = "(Required; Default `/readiness`) The request path."
   type        = string
   default     = "/readiness"
-}
-
-variable "readiness_host" {
-  description = "(Optional) Host header to send when performing a HTTP Readiness check."
-  type        = string
-  default     = null
+  nullable = false
 }
 
 variable "readiness_failure_threshold" {
   description = "(Optional; Default 2) Number of consecutive failed checks required before removing traffic."
   type        = number
   default     = 2
+  nullable = false
 }
 
 variable "readiness_success_threshold" {
   description = "(Optional; Default 2) Number of consecutive successful checks required before receiving traffic."
   type        = number
   default     = 2
+  nullable = false
 }
 
 variable "readiness_check_interval" {
   description = "(Optional; Default `5s`) Interval between health checks."
   type        = string
   default     = "5s"
+  nullable = false
 }
 
 variable "readiness_timeout" {
   description = "(Optional; Default `4s`) Time before the check is considered failed."
   type        = string
   default     = "4s"
+  nullable = false
 }
 
 variable "readiness_app_start_timeout" {
   description = "(Optional; Default `300s`) A maximum time limit on application initialization, measured from moment the application successfully replies to a healthcheck until it is ready to serve traffic."
   type        = string
   default     = "300s"
+  nullable = false
 }
 # ===== /Readiness Check Variables ===== #
 
@@ -66,30 +78,35 @@ variable "liveness_failure_threshold" {
   description = "(Optional; Default 4) Number of consecutive failed checks required before removing traffic."
   type        = number
   default     = 4
+  nullable = false
 }
 
 variable "liveness_success_threshold" {
   description = "(Optional; Default 2) Number of consecutive successful checks required before receiving traffic."
   type        = number
   default     = 2
+  nullable = false
 }
 
 variable "liveness_check_interval" {
   description = "(Optional; Default `30s`) Interval between health checks."
   type        = string
-  default     = "30ss"
+  default     = "30s"
+  nullable = false
 }
 
 variable "liveness_timeout" {
   description = "(Optional; Default `4s`) Time before the check is considered failed."
   type        = string
   default     = "4s"
+  nullable = false
 }
 
 variable "liveness_initial_delay" {
   description = "(Optional; Default `300s`) A maximum time limit on application initialization, measured from moment the application successfully replies to a healthcheck until it is ready to serve traffic."
   type        = string
   default     = "300s"
+  nullable = false
 }
 # ===== /Liveness Check Variables ===== #
 
@@ -311,7 +328,7 @@ variable "zip" {
   description = "(Optional) Zip File Structure."
   type = object({
     source_url  = string,
-    files_count = number
+    files_count = optional(number)
   })
   default = null
 }
@@ -384,9 +401,12 @@ variable "cpu_utilization" {
   description = "(Required) Target scaling by CPU usage."
   type = list(object({
     target_utilization        = number
-    aggregation_window_length = string
+    aggregation_window_length = optional(string)
   }))
-  default = null
+  default = [{
+    target_utilization = 0.5
+  }]
+  nullable = false
 
   validation {
     condition     = var.cpu_utilization != null ? ! contains([for target_utilization in var.cpu_utilization[*].target_utilization : (target_utilization == null || (target_utilization > 0 && target_utilization <= 1)) if target_utilization != null], false) : true
@@ -477,4 +497,17 @@ variable "delete_service_on_destroy" {
   description = "(Optional; Default: False)If set to true, the service will be deleted if it is the last version."
   type        = bool
   default     = false
+}
+
+variable "vpc_access_connector" {
+  description = "(Optional) Enables VPC connectivity for standard apps."
+  type = object({
+    name = string
+  })
+  default = null
+
+  validation {
+    condition     = var.vpc_access_connector != null ? length(regexall("^\\bprojects\\b/[[:word:]-]+/\\blocations\\b/[[:word:]-]+/\\bconnectors\\b/[[:word:]-]+$", (var.vpc_access_connector.name == null ? "" : var.vpc_access_connector.name))) > 0 : true
+    error_message = "Format of VPC access connector must use the following format `projects/[$PROJECT_NAME]/locations/[$CONNECTOR_LOCATION]/connectors/[$CONNECTOR_NAME]`."
+  }
 }

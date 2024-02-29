@@ -11,7 +11,7 @@ locals {
 }
 
 module "versions" {
-  for_each = toset(local.versions)
+  for_each = local.versions
   source   = "../automatic_scaling"
 
   # Version specific args.

@@ -23,6 +23,7 @@ module "app_versions" {
   delete_service_on_destroy = var.delete_service_on_destroy
   entrypoint                = var.entrypoint
   vpc_access_connector      = var.vpc_access_connector
+  instance_class            = var.instance_class
 }
 
 module "split_traffic" {

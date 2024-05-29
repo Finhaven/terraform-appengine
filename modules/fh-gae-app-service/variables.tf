@@ -75,3 +75,9 @@ variable "delete_service_on_destroy" {
   type        = bool
   default     = false
 }
+
+variable "instance_class" {
+  description = "(Optional; Default: F1) Instance class that is used to run this version."
+  type        = string
+  default     = "F1"
+}

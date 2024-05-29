@@ -65,3 +65,9 @@ variable "vpc_access_connector" {
   })
   default = null
 }
+
+variable "instance_class" {
+  description = "(Optional; Default: F1) Instance class that is used to run this version."
+  type        = string
+  default     = "F1"
+}

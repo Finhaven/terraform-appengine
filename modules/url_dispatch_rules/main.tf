@@ -2,7 +2,11 @@ resource "google_app_engine_application_url_dispatch_rules" "rules" {
   project = var.project_id
 
   dynamic "dispatch_rules" {
-    for_each = toset(var.dispatch_rules)
+    # Use a for expression to maintain list order.
+    for_each = {
+      for key, rule in var.dispatch_rules :
+      key => rule
+    }
     iterator = rule
 
     content {
